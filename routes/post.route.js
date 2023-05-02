@@ -82,16 +82,58 @@ postRouter.delete('/posts/:id',authenticate, async(req, res) => {
 
 
 postRouter.post('/posts/:id/like', async(req, res) => {
-    
-    const {like} = req.body;
+    const {id} = req.params
     try {
-       
+        const post = await PostModel.findById(id)
+        if (!post) {
+            res.status(404).send({"msg": 'Post not found' });
+        }
+        post.likes.push(id);
+        await post.save();
+
+        res.status(202).send({"msg":"LIKED"})
     } 
     catch (err) {
         res.status(500).send({'Server error':err});
     }
 });
 
+
+postRouter.post('/posts/:id/comment', async(req, res) => {
+    const {id} = req.params
+    const {comment}  =req.body
+    try {
+        const post = await PostModel.findById(id)
+        if (!post) {
+            res.status(404).send({"msg": 'Post not found' });
+        }
+        let data = {
+            user:new mongoose.Types.ObjectId(),
+            text:comment,
+            createdAt: new Date()
+        }
+        post.comments.push(data);
+        await post.save();
+
+        res.status(202).send({"msg":"Comment posted"})
+    } 
+    catch (err) {
+        res.status(500).send({'Server error':err});
+    }
+});
+
+
+postRouter.get("/posts/:id",async(req,res)=>{
+    const {id} = req.params
+    try{
+        let posts = await PostModel.findById(id)
+        res.status(200).send(posts)
+
+    }
+    catch(err){
+        res.status(500).send({'Server error':err});
+    }
+})
 
 
 
